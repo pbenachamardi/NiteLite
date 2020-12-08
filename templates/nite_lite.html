@@ -1,0 +1,122 @@
+<!doctype html>
+<html>
+    <head>
+       <title>Assistments Iframe</title>
+       <meta charset="utf-8">
+       <meta name="viewport" content="width=device-width, initial-scale=1">
+       <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+       <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+       <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+        <script type=text/javascript>
+            $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+        </script>
+        <script type="text/javascript" src="{{ url_for('static',filename='iframe_config.js') }}"></script>
+<!--        <link rel="stylesheet" href="{{ url_for('static',filename='styles.css') }}">-->
+    </head>
+   <body>
+
+   <div class="container" style="padding-top: 15px;">
+        <div class="panel panel-primary">
+            <div class="panel-heading" style="text-align:center">ASSISTMENTS</div>
+            <div class="panel-body">
+                <div id="prob_id">{{session.prob_id}}</div>
+                <div id="prob_num">{{session.prob_num}}</div>
+                <p>{{session.prob_body}}</p>
+                <form action="/submit/" method="post" onsubmit="return validateAnswer()">
+                    <textarea id="answer" name="answer" aria-hidden="true" placeholder="Your answer should contain at least 120 characters."
+                     style="width: 100%; height:100px; max-width: 100%;resize: none;">{{ session.stud_ans }}</textarea>
+                    <input type="submit" id="submit1" class="btn btn-primary" value="Submit Answer">
+                </form>
+            </div>
+        </div>
+
+       	<div class="alert alert-dismissible alert-danger" id="alert" style="display:none; text-align: center;">
+	  	    <a class="close" aria-label="close" onclick="closeAlert()">&times;</a>
+	  	    <strong>Please extend your answer to 120 characters or more</strong>
+	    </div>
+
+
+       {% if session.success %}
+            <div class="alert alert-dismissible alert-success" style="font-size: 20px; text-align:center; color:white; background-color: #00b300">
+	  	    <strong>Your Answer is Submitted Successfully</strong>
+	    </div>
+       {% endif %}
+
+       {% if session.show_recs_div %}
+       <div class="panel panel-info" id="recommend_ans">
+           <div class="panel-heading" style="text-align:center; color:white; background-color: #00b300">Other Student Responses</div>
+                <div class="panel-body">
+                    <textarea id="ans_rec_1" name="ans_rec_1" aria-hidden="true"
+                         style="width: 100%; height:75px; max-width: 100%;resize: none;" disabled>{{ session.ans_rec_1 }}</textarea>
+                    <textarea id="ans_rec_2" name="ans_rec_2" aria-hidden="true"
+                         style="width: 100%; height:75px; max-width: 100%;resize: none;" disabled>{{ session.ans_rec_2 }}</textarea>
+                    <textarea id="ans_rec_3" name="ans_rec_3" aria-hidden="true"
+                         style="width: 100%; height:75px; max-width: 100%;resize: none;" disabled>{{ session.ans_rec_3 }}</textarea>
+
+                    <form action="/resubmit_or_edit/" method="post">
+                        <div style="display: inline-block;">
+                            <input type="submit" name="resubmit" class="btn btn-primary" value="Submit Original Answer">
+                            <input type="submit" name="edit" class="btn btn-primary" value="Edit Original Answer">
+                        </div>
+                    </form>
+                </div>
+       </div>
+       {% endif %}
+
+   </div>
+
+   <script>
+
+        {% if session.assistments is defined%}
+            iframeLoaded();
+            iframeHeartbeat();
+        {% endif %}
+
+        {% if session.show_recs_div or session.success %}
+            $('#answer').prop("disabled",true);
+            $('#submit1').prop("disabled",true);
+        {% endif %}
+
+        {% if session.success %}
+            ans = "{{session.stud_ans}}"
+            iframeCompleted(ans);
+            close_session();
+        {% endif %}
+
+        function validateAnswer(){
+            var text = document.getElementById('answer').value;
+            if(text.length < 120) {
+                $('#alert').show().delay(5000).fadeOut();
+                return false;
+            }
+<!--            $.getJSON($SCRIPT_ROOT + '/submit', function(data){});-->
+            return true;
+        }
+
+        function closeAlert(){
+		    $('#alert').hide();
+	    }
+
+
+        function onSubmit2(){
+            $.ajax({
+                url: '/resubmit_orig_answer',
+                data: $('form').serialize(),
+                type: 'POST',
+                success: function(response){
+                    console.log(response);
+                },
+                error: function(error){
+                    console.log(error);
+                }
+            });
+        }
+
+
+
+   </script>
+
+   </body>
+</html>
+
+
